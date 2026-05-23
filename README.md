@@ -1,1 +1,1 @@
-https://github.com/kotansava/mesto-production
+https://kotansava.github.io/mesto-production/

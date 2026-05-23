@@ -5,6 +5,17 @@ const getTemplate = () => {
     .cloneNode(true);
 };
 
+// Метод удаления элемента карточки из DOM
+export const removeCardElement = (cardElement) => {
+  cardElement.remove();
+};
+
+// Метод обновления лайков на UI
+export const updateLikeStatus = (likeButton, likeCountElement, updatedLikes) => {
+  likeButton.classList.toggle("card__like-button_is-active");
+  likeCountElement.textContent = updatedLikes.length;
+};
+
 export const createCardElement = (
   data,
   currentUserId,
@@ -20,16 +31,13 @@ export const createCardElement = (
   cardImage.alt = data.name;
   cardElement.querySelector(".card__title").textContent = data.name;
 
-  // Отображение количества лайков
   likeCount.textContent = data.likes.length;
 
-  // Проверка: лайкнул ли карточку текущий пользователь
-  const isLiked = data.likes.some((user) => user._id === currentUserId);
-  if (isLiked) {
+  const isLikedInitial = data.likes.some((user) => user._id === currentUserId);
+  if (isLikedInitial) {
     likeButton.classList.add("card__like-button_is-active");
   }
 
-  // Если карточка создана не нами, удаляем иконку корзины
   if (data.owner._id !== currentUserId) {
     deleteButton.remove();
   } else if (onDeleteCard) {
@@ -37,7 +45,11 @@ export const createCardElement = (
   }
 
   if (onLikeIcon) {
-    likeButton.addEventListener("click", () => onLikeIcon(likeButton, data._id, likeCount));
+    likeButton.addEventListener("click", () => {
+      // Определяем статус лайка в момент клика и передаем параметром в колбэк
+      const isLiked = likeButton.classList.contains("card__like-button_is-active");
+      onLikeIcon(likeButton, data._id, likeCount, isLiked);
+    });
   }
 
   if (onPreviewPicture) {
