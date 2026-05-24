@@ -42,6 +42,12 @@ const avatarFormModalWindow = document.querySelector(".popup_type_edit-avatar");
 const avatarForm = avatarFormModalWindow.querySelector(".popup__form");
 const avatarInput = avatarForm.querySelector(".popup__input");
 
+const infoModalWindow = document.querySelector(".popup_type_info");
+const infoModalTitle = infoModalWindow.querySelector(".popup__title");
+const infoModalDefinitionList = infoModalWindow.querySelector(".popup__info"); // <dl> список
+const infoModalText = infoModalWindow.querySelector(".popup__text"); // Заголовок над списком лайков
+const infoModalUsersList = infoModalWindow.querySelector(".popup__list"); // <ul> список пользователей
+
 // Дополнительное задание: попап подтверждения удаления
 const confirmDeleteModalWindow = document.querySelector(".popup_type_remove-card");
 const confirmDeleteForm = confirmDeleteModalWindow.querySelector(".popup__form");
@@ -71,6 +77,7 @@ const createCard = (cardData) => {
     onPreviewPicture: handlePreviewPicture,
     onLikeIcon: handleLikeIcon,
     onDeleteCard: handleDeleteCard,
+    onInfoIcon: handleInfoClick // Передаем наш новый обработчик
   });
 };
 
@@ -215,6 +222,79 @@ allPopups.forEach((popup) => {
 });
 
 enableValidation(validationSettings);
+
+// Генерация строки (термин - описание)
+const createInfoString = (term, description) => {
+  const item = document.getElementById("popup-info-definition-template").content.cloneNode(true);
+  item.querySelector(".popup__info-term").textContent = term;
+  item.querySelector(".popup__info-description").textContent = description;
+  return item;
+};
+
+// Генерация бейджа (имени) пользователя
+const createUserBadge = (userName) => {
+  const item = document.getElementById("popup-info-user-preview-template").content.cloneNode(true);
+  const badge = item.querySelector(".popup__list-item_type_badge");
+  badge.textContent = userName;
+  return item;
+};
+
+// Форматирование даты
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("ru-RU", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+const handleInfoClick = (cardId) => {
+  // Получаем актуальные данные с сервера
+  getCardList()
+    .then((cards) => {
+      // Ищем нужную карточку в массиве
+      const cardData = cards.find((card) => card._id === cardId);
+      if (!cardData) return;
+
+      // Очищаем контейнеры от предыдущих данных
+      infoModalDefinitionList.innerHTML = "";
+      infoModalUsersList.innerHTML = "";
+
+      // Фиксированный заголовок модального окна
+      infoModalTitle.textContent = "Информация о карточке";
+
+      // Заполняем список информации <dl> в нужном порядке
+      infoModalDefinitionList.append(
+        createInfoString("Описание:", cardData.name)
+      );
+      infoModalDefinitionList.append(
+        createInfoString("Дата создания:", formatDate(cardData.createdAt))
+      );
+      infoModalDefinitionList.append(
+        createInfoString("Владелец:", cardData.owner.name)
+      );
+      infoModalDefinitionList.append(
+        createInfoString("Количество лайков:", cardData.likes.length)
+      );
+
+      // Заполняем список пользователей, которые поставили лайк
+      if (cardData.likes.length > 0) {
+        infoModalText.textContent = "Лайкнули:";
+        cardData.likes.forEach((user) => {
+          infoModalUsersList.append(createUserBadge(user.name));
+        });
+      } else {
+        infoModalText.textContent = "Пока никто не лайкнул эту карточку.";
+      }
+
+      // Открываем модальное окно
+      openModalWindow(infoModalWindow);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
 
 // --- Инициализация приложения ---
 Promise.all([getUserInfo(), getCardList()])

@@ -19,11 +19,12 @@ export const updateLikeStatus = (likeButton, likeCountElement, updatedLikes) => 
 export const createCardElement = (
   data,
   currentUserId,
-  { onPreviewPicture, onLikeIcon, onDeleteCard }
+  { onPreviewPicture, onLikeIcon, onDeleteCard, onInfoIcon } // Добавили onInfoIcon
 ) => {
   const cardElement = getTemplate();
   const likeButton = cardElement.querySelector(".card__like-button");
   const deleteButton = cardElement.querySelector(".card__control-button_type_delete");
+  const infoButton = cardElement.querySelector(".card__control-button_type_info"); // Нашли кнопку "i"
   const cardImage = cardElement.querySelector(".card__image");
   const likeCount = cardElement.querySelector(".card__like-count");
 
@@ -46,7 +47,6 @@ export const createCardElement = (
 
   if (onLikeIcon) {
     likeButton.addEventListener("click", () => {
-      // Определяем статус лайка в момент клика и передаем параметром в колбэк
       const isLiked = likeButton.classList.contains("card__like-button_is-active");
       onLikeIcon(likeButton, data._id, likeCount, isLiked);
     });
@@ -54,6 +54,11 @@ export const createCardElement = (
 
   if (onPreviewPicture) {
     cardImage.addEventListener("click", () => onPreviewPicture({ name: data.name, link: data.link }));
+  }
+
+  // --- НОВОЕ: Обработчик клика по иконке информации ---
+  if (onInfoIcon) {
+    infoButton.addEventListener("click", () => onInfoIcon(data._id));
   }
 
   return cardElement;
